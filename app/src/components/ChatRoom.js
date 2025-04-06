@@ -59,6 +59,7 @@ export const ChatRoom = () => {
   const handleSendMessage = () => {
     if (username && socket && message !== "") {
       socket.emit("send-message", { username, message, sessionId });
+      setMessage("");
     }
   };
 
@@ -128,7 +129,7 @@ export const ChatRoom = () => {
 
       <div className="flex flex-col flex-1 gap-2">
         <h2 className="text-lg font-bold">Chat Room</h2>
-        <div className="h-full border flex flex-col gap-2 overflow-auto p-2">
+        <div className="flex-1 max-h-[65vh] border flex flex-col gap-2 overflow-y-auto p-2">
           {chatMessages.map((item, index) => (
             <div
               key={index}
@@ -158,6 +159,12 @@ export const ChatRoom = () => {
           <textarea
             value={message}
             onChange={(e) => setMessage(e.target.value)}
+            onKeyUp={(e) => {
+              if (e.key === "Enter" && !e.shiftKey) {
+                e.preventDefault();
+                handleSendMessage();
+              }
+            }}
             className="w-full border p-2 text-sm"
             placeholder="Start typing here..."
           />
