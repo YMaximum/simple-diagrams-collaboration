@@ -2,7 +2,7 @@
 import { useState, useEffect } from "react";
 import { io, Socket } from "socket.io-client";
 
-export const ChatRoom = () => {
+export default function ChatRoom() {
   const [socket, setSocket] = useState(null);
   const [message, setMessage] = useState("");
   const [chatMessages, setChatMessages] = useState([]);
@@ -64,7 +64,7 @@ export const ChatRoom = () => {
   };
 
   return (
-    <div className="container max-w-[25vw] mx-auto p-4 h-full flex flex-col gap-2 border-l">
+    <div className="max-w-[25vw] min-w-[20vw] mx-auto p-4 h-full flex flex-col gap-2 border-l">
       <h1 className="text-2xl font-bold">Session</h1>
 
       {!isConnected && (
@@ -179,4 +179,4 @@ export const ChatRoom = () => {
       </div>
     </div>
   );
-};
+}
