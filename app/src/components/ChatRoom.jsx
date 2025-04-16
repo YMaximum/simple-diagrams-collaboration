@@ -2,15 +2,21 @@
 import { useState, useEffect, useContext } from "react";
 import { io } from "socket.io-client";
 import { UserContext } from "./context/UserContext";
+import { WebsocketProvider } from "y-websocket";
+import { doc } from "@/data/ydoc";
+import { initialNodes } from "@/data/nodes";
+import { initialEdges } from "@/data/edges";
 
 export default function ChatRoom() {
   let {
     sessionId,
     setSessionId,
     socket,
+    username,
     isSessionJoined,
     setIsSessionJoined,
     setSocket,
+    setUsername,
   } = useContext(UserContext);
   const [message, setMessage] = useState("");
   const [chatMessages, setChatMessages] = useState([]);
@@ -25,7 +31,7 @@ export default function ChatRoom() {
     );
 
     newSocket.on("connect", () => {
-      console.log("Connected to server");
+      console.log("Connected to chat service");
       setIsConnected(true);
     });
 
@@ -42,7 +48,7 @@ export default function ChatRoom() {
       setUsers(updatedUsers);
     });
 
-    setSocket({ ...socket, chat: newSocket });
+    setSocket((prevSocket) => ({ ...prevSocket, chat: newSocket }));
 
     return () => {
       newSocket.disconnect();
@@ -52,7 +58,7 @@ export default function ChatRoom() {
   const handleJoinSession = () => {
     if (username && socket.chat) {
       socket.chat.emit("join-session", { username, sessionId });
-      // socket.collab.emit("join-session", { username, sessionId });
+      socket.collab.emit("join-session", { username, sessionId });
       setIsSessionJoined(true);
     }
   };
@@ -60,6 +66,7 @@ export default function ChatRoom() {
   const handleLeaveSession = () => {
     if (username && socket.chat) {
       socket.chat.emit("leave-session", { username, sessionId });
+      socket.yws.disconnect();
       setIsSessionJoined(false);
     }
   };

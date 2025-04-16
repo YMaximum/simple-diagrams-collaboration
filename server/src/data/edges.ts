@@ -1,4 +1,6 @@
-export const initialEdges = [
+import { Edge } from 'src/websocket/interfaces/diagram.interface';
+
+export const initialEdges: Edge[] = [
   {
     id: '10537',
     source: '813',

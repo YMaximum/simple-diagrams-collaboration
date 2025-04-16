@@ -1,4 +1,6 @@
-export const initialNodes = [
+import { Node } from 'src/websocket/interfaces/diagram.interface';
+
+export const initialNodes: Node[] = [
   {
     id: '761',
     data: {

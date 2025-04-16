@@ -4,131 +4,125 @@ import {
   MiniMap,
   Controls,
   Background,
-  useNodesState,
-  useEdgesState,
-  addEdge,
   Panel,
-  applyEdgeChanges,
-  applyNodeChanges,
+  ReactFlowProvider,
 } from "@xyflow/react";
 
 import "@xyflow/react/dist/style.css";
 import { useCallback, useContext, useEffect, useRef } from "react";
 import Unit from "./customnodes/Unit";
-import { initialNodes } from "@/data/nodes";
-import { initialEdges } from "@/data/edges";
-
-import * as Y from "yjs";
-import { encodeStateAsUpdate, applyUpdate } from "y-protocols/sync";
-import {
-  Awareness,
-  encodeAwarenessUpdate,
-  applyAwarenessUpdate,
-} from "y-protocols/awareness";
 
 import { io } from "socket.io-client";
 import { UserContext } from "./context/UserContext";
+import { doc } from "@/data/ydoc";
+import useNodesStateSynced from "@/hooks/useNodesStateSynced";
+import useEdgesStateSynced from "@/hooks/useEdgeStateSynced";
+import Cursors from "./Cursors";
+import useCursorStateSynced from "@/hooks/useCursorStateSynced";
+import * as Y from "yjs";
+import { WebsocketProvider } from "y-websocket";
+
+const proOptions = {
+  account: "paid-pro",
+  hideAttribution: true,
+};
+
+const onDragOver = (event) => {
+  event.preventDefault();
+  event.dataTransfer.dropEffect = "move";
+};
 
 const nodeTypes = { unit: Unit };
 
-export default function Canvas() {
-  let { socket, setSocket, sessionId, username } = useContext(UserContext);
-  const ydocRef = useRef < Y.Doc > new Y.Doc();
-  const awarenessRef = useRef < Awareness > new Awareness(ydocRef.current);
-  const yNodes = ydocRef.current.getArray("nodes");
-  const yEdges = ydocRef.current.getArray("edges");
+function Canvas() {
+  let { setSocket, sessionId } = useContext(UserContext);
 
-  const [nodes, setNodes, onNodesChange] = useNodesState([]);
-  const [edges, setEdges, onEdgesChange] = useEdgesState([]);
+  const [nodes, setNodes, onNodesChange] = useNodesStateSynced();
+  const [edges, setEdges, onEdgesChange] = useEdgesStateSynced();
+  const [cursors, onMouseMove] = useCursorStateSynced();
 
   useEffect(() => {
-    const newSocket = io(
+    const collabProvider = io(
       process.env.NEXT_PUBLIC_WEBSOCKET_URL
         ? `${process.env.NEXT_PUBLIC_WEBSOCKET_URL}/collab`
         : "http://localhost:3001/collab"
     );
 
-    newSocket.emit("join-session", { sessionId, username });
+    collabProvider.on("diagram", (diagram) => {
+      const nodes = doc.getMap("nodes");
+      const edges = doc.getMap("edges");
 
-    // Handle sync from server
-    newSocket.on("sync", (update) => {
-      applyUpdate(ydocRef.current, update);
-    });
+      if (nodes.size === 0) {
+        diagram.nodes.forEach((item) => nodes.set(item.id, item));
+      }
+      if (edges.size === 0) {
+        diagram.edges.forEach((item) => edges.set(item.id, item));
+      }
 
-    newSocket.on("awareness-update", (update) => {
-      applyAwarenessUpdate(awarenessRef.current, update, newSocket.id);
-    });
-
-    // Emit awareness state
-    awarenessRef.current.setLocalStateField("user", { name: username });
-
-    awarenessRef.current.on("update", ({ added, updated, removed }) => {
-      const changedClients = added.concat(updated).concat(removed);
-      const update = encodeAwarenessUpdate(
-        awarenessRef.current,
-        changedClients
+      const ywsProvider = new WebsocketProvider(
+        process.env.NEXT_PUBLIC_Y_WEBSOCKET_URL
+          ? `${process.env.NEXT_PUBLIC_Y_WEBSOCKET_URL}`
+          : "ws://localhost:1234",
+        sessionId,
+        doc
       );
-      newSocket.emit("awareness-update", { sessionId, update });
+
+      ywsProvider.synced
+
+      setSocket((prevSocket) => ({ ...prevSocket, yws: ywsProvider }));
     });
 
-    // Initial sync
-    const initialUpdate = encodeStateAsUpdate(ydocRef.current);
-    newSocket.emit("sync", { sessionId, update: initialUpdate });
-
-    setSocket({ ...socket, collab: newSocket });
+    setSocket((prevSocket) => ({ ...prevSocket, collab: collabProvider }));
 
     return () => {
-      newSocket.disconnect();
+      collabProvider.disconnect();
     };
   }, []);
-
-  // Yjs → React
-  useEffect(() => {
-    const updateNodes = () => setNodes(yNodes.toArray());
-    const updateEdges = () => setEdges(yEdges.toArray());
-
-    yNodes.observe(updateNodes);
-    yEdges.observe(updateEdges);
-
-    if (yNodes.length === 0) yNodes.push(initialNodes);
-    if (yEdges.length === 0) yEdges.push(initialEdges);
-    else {
-      updateNodes();
-      updateEdges();
-    }
-
-    return () => {
-      yNodes.unobserve(updateNodes);
-      yEdges.unobserve(updateEdges);
-    };
-  }, []);
-
-  // React → Yjs
-  const handleNodesChange = useCallback(
-    (changes) => {
-      const updated = applyNodeChanges(changes, yNodes.toArray());
-      yNodes.delete(0, yNodes.length);
-      yNodes.push(updated);
-    },
-    [setNodes]
-  );
-
-  const handleEdgesChange = useCallback(
-    (changes) => {
-      const updated = applyEdgeChanges(changes, yEdges.toArray());
-      yEdges.delete(0, yEdges.length);
-      yEdges.push(updated);
-    },
-    [setEdges]
-  );
 
   const onConnect = useCallback(
     (params) => {
-      const updated = addEdge(params, yEdges.toArray());
-      yEdges.delete(0, yEdges.length);
-      yEdges.push(updated);
+      setEdges((prev) => addEdge(params, prev));
     },
     [setEdges]
+  );
+
+  const onDrop = (event) => {
+    event.preventDefault();
+
+    const type = event.dataTransfer.getData("application/reactflow");
+    const position = screenToFlowPosition({
+      x: event.clientX - 80,
+      y: event.clientY - 20,
+    });
+    const newNode = {
+      id: `${Date.now()}`,
+      type,
+      position,
+      data: { label: `${type}` },
+    };
+
+    setNodes((prev) => [...prev, newNode]);
+  };
+
+  // We are adding a blink effect on click that we remove after 3000ms again.
+  // This should help users to see that a node was clicked by another user.
+  const onNodeClick = useCallback(
+    (_, clicked) => {
+      setNodes((prev) =>
+        prev.map((node) =>
+          node.id === clicked.id ? { ...node, className: "blink" } : node
+        )
+      );
+
+      window.setTimeout(() => {
+        setNodes((prev) =>
+          prev.map((node) =>
+            node.id === clicked.id ? { ...node, className: undefined } : node
+          )
+        );
+      }, 3000);
+    },
+    [setNodes]
   );
 
   return (
@@ -137,16 +131,30 @@ export default function Canvas() {
         nodes={nodes}
         edges={edges}
         nodeTypes={nodeTypes}
-        onNodesChange={handleNodesChange}
-        onEdgesChange={handleEdgesChange}
+        onEdgesChange={onEdgesChange}
+        onNodesChange={onNodesChange}
         onConnect={onConnect}
+        onNodeClick={onNodeClick}
+        onDrop={onDrop}
+        onDragOver={onDragOver}
+        onPointerMove={onMouseMove}
+        proOptions={proOptions}
         fitView
       >
         <Controls />
         <MiniMap pannable zoomable />
+        <Cursors cursors={cursors} />
         <Panel position="top-left">Socket.IO + Yjs</Panel>
         <Background variant="dots" gap={12} size={1} />
       </ReactFlow>
     </div>
+  );
+}
+
+export default function Flow() {
+  return (
+    <ReactFlowProvider>
+      <Canvas />
+    </ReactFlowProvider>
   );
 }
