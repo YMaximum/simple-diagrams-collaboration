@@ -1,20 +1,27 @@
 "use client";
-import { useState, useEffect } from "react";
-import { io, Socket } from "socket.io-client";
+import { useState, useEffect, useContext } from "react";
+import { io } from "socket.io-client";
+import { UserContext } from "./context/UserContext";
 
 export default function ChatRoom() {
-  const [socket, setSocket] = useState(null);
+  let {
+    sessionId,
+    setSessionId,
+    socket,
+    isSessionJoined,
+    setIsSessionJoined,
+    setSocket,
+  } = useContext(UserContext);
   const [message, setMessage] = useState("");
   const [chatMessages, setChatMessages] = useState([]);
   const [users, setUsers] = useState([]);
-  const [username, setUsername] = useState("");
   const [isConnected, setIsConnected] = useState(false);
-  const [sessionId, setSessionId] = useState("");
-  const [isSessionJoined, setIsSessionJoined] = useState(false);
 
   useEffect(() => {
     const newSocket = io(
-      process.env.NEXT_PUBLIC_WEBSOCKET_URL || "http://localhost:3001"
+      process.env.NEXT_PUBLIC_WEBSOCKET_URL
+        ? `${process.env.NEXT_PUBLIC_WEBSOCKET_URL}/chat`
+        : "http://localhost:3001/chat"
     );
 
     newSocket.on("connect", () => {
@@ -35,7 +42,7 @@ export default function ChatRoom() {
       setUsers(updatedUsers);
     });
 
-    setSocket(newSocket);
+    setSocket({ ...socket, chat: newSocket });
 
     return () => {
       newSocket.disconnect();
@@ -43,22 +50,23 @@ export default function ChatRoom() {
   }, []);
 
   const handleJoinSession = () => {
-    if (username && socket) {
-      socket.emit("join-session", { username, sessionId });
+    if (username && socket.chat) {
+      socket.chat.emit("join-session", { username, sessionId });
+      // socket.collab.emit("join-session", { username, sessionId });
       setIsSessionJoined(true);
     }
   };
 
   const handleLeaveSession = () => {
-    if (username && socket) {
-      socket.emit("leave-session", { username, sessionId });
+    if (username && socket.chat) {
+      socket.chat.emit("leave-session", { username, sessionId });
       setIsSessionJoined(false);
     }
   };
 
   const handleSendMessage = () => {
-    if (username && socket && message !== "") {
-      socket.emit("send-message", { username, message, sessionId });
+    if (username && socket.chat && message !== "") {
+      socket.chat.emit("send-message", { username, message, sessionId });
       setMessage("");
     }
   };

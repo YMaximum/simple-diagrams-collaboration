@@ -27,9 +27,13 @@
     "@nestjs/platform-express": "^11.0.1",
     "@nestjs/platform-socket.io": "^11.0.11",
     "@nestjs/websockets": "^11.0.11",
+    "lib0": "^0.2.104",
     "reflect-metadata": "^0.2.2",
     "rxjs": "^7.8.1",
-    "socket.io": "^4.8.1"
+    "socket.io": "^4.8.1",
+    "y-protocols": "^1.0.6",
+    "y-websocket": "^3.0.0",
+    "yjs": "^13.6.24"
   },
   "devDependencies": {
     "@eslint/eslintrc": "^3.2.0",

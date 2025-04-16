@@ -2,13 +2,14 @@ export const initialNodes = [
   {
     id: "761",
     data: {
-      label: "RU PP7",
+      label: "Unit 1",
       handles: [
         {
           id: "4173",
           type: "target",
           sidelocation: "0",
           name: "P1",
+          position: "39",
         },
       ],
       kind: "REFINERY",
@@ -22,19 +23,21 @@ export const initialNodes = [
   {
     id: "762",
     data: {
-      label: "SHIPPING TANKER",
+      label: "Unit 2",
       handles: [
         {
           id: "4174",
           type: "target",
           sidelocation: "0",
           name: "P1",
+          position: "76",
         },
         {
           id: "80982",
           type: "target",
           sidelocation: "0",
           name: "P2",
+          position: "29",
         },
       ],
       kind: "TANKER",
@@ -48,19 +51,21 @@ export const initialNodes = [
   {
     id: "813",
     data: {
-      label: "TEXCAL ENERGY MAHATO",
+      label: "Unit 3",
       handles: [
         {
           id: "1698",
           type: "source",
           sidelocation: "1",
           name: "P2",
+          position: "57",
         },
         {
           id: "52491",
           type: "target",
           sidelocation: "2",
           name: "P1",
+          position: "13",
         },
       ],
       kind: "COMPANY",
@@ -74,25 +79,28 @@ export const initialNodes = [
   {
     id: "810",
     data: {
-      label: "PHE SIAK",
+      label: "Unit 4",
       handles: [
         {
           id: "64069",
           type: "target",
           sidelocation: "2",
           name: "P3",
+          position: "82",
         },
         {
           id: "19464",
           type: "source",
           sidelocation: "1",
           name: "P2",
+          position: "75",
         },
         {
           id: "1800",
           type: "source",
           sidelocation: "1",
           name: "P1",
+          position: "28",
         },
       ],
       kind: "COMPANY",
@@ -106,25 +114,28 @@ export const initialNodes = [
   {
     id: "811",
     data: {
-      label: "BUMI SIAK PUSAKO",
+      label: "Unit 5",
       handles: [
         {
           id: "1688",
           type: "source",
           sidelocation: "2",
           name: "P1",
+          position: "56",
         },
         {
           id: "64075",
           type: "target",
           sidelocation: "2",
           name: "P2",
+          position: "26",
         },
         {
           id: "78298",
           type: "source",
           sidelocation: "2",
           name: "P3",
+          position: "84",
         },
       ],
       kind: "COMPANY",
@@ -138,25 +149,28 @@ export const initialNodes = [
   {
     id: "851",
     data: {
-      label: "TRUNKLINE TO PETKO",
+      label: "Unit 6",
       handles: [
         {
           id: "1788",
           type: "target",
           sidelocation: "1",
           name: "P1",
+          position: "52",
         },
         {
           id: "1789",
           type: "target",
           sidelocation: "0",
           name: "P2",
+          position: "28",
         },
         {
           id: "1791",
           type: "source",
           sidelocation: "2",
           name: "P3",
+          position: "46",
         },
       ],
       kind: "TRUNKLINE",
@@ -170,25 +184,28 @@ export const initialNodes = [
   {
     id: "812",
     data: {
-      label: "SPR LANGGAK",
+      label: "Unit 7",
       handles: [
         {
           id: "64076",
           type: "target",
           sidelocation: "2",
           name: "P3",
+          position: "74",
         },
         {
           id: "18877",
           type: "target",
           sidelocation: "0",
           name: "P2",
+          position: "53",
         },
         {
           id: "1741",
           type: "source",
           sidelocation: "2",
           name: "P1",
+          position: "19",
         },
       ],
       kind: "COMPANY",
@@ -200,67 +217,23 @@ export const initialNodes = [
     },
   },
   {
-    id: "879",
-    data: {
-      label: "[TO BE DELETED] BEKASAP (SLN).879",
-      handles: [
-        {
-          id: "1875",
-          type: "source",
-          sidelocation: "2",
-          name: "P1.1875",
-        },
-      ],
-      kind: "FIELD - AREA",
-    },
-    type: "unit",
-    position: {
-      x: 733.920948617,
-      y: 575.810799819,
-    },
-  },
-  {
-    id: "765",
-    data: {
-      label: "BALAM.765",
-      handles: [],
-      kind: "FIELD - AREA",
-    },
-    type: "unit",
-    position: {
-      x: 200,
-      y: 50,
-    },
-  },
-  {
-    id: "2440",
-    data: {
-      label: "LIBO GP.2440",
-      handles: [],
-      kind: "FIELD - AREA",
-    },
-    type: "unit",
-    position: {
-      x: 609.820512821,
-      y: 1365.93162393,
-    },
-  },
-  {
     id: "2736",
     data: {
-      label: "TGI",
+      label: "Unit 8",
       handles: [
         {
           id: "4167",
           type: "source",
           sidelocation: "2",
           name: "P1",
+          position: "51",
         },
         {
           id: "64077",
           type: "target",
           sidelocation: "2",
           name: "P2",
+          position: "16",
         },
       ],
       kind: "COMPANY",
@@ -274,31 +247,28 @@ export const initialNodes = [
   {
     id: "2737",
     data: {
-      label: "GAS PIPE",
+      label: "Unit 9",
       handles: [
         {
           id: "4169",
           type: "source",
           sidelocation: "2",
           name: "P2",
-        },
-        {
-          id: "4170",
-          type: "source",
-          sidelocation: "1",
-          name: "P3.4170",
+          position: "20",
         },
         {
           id: "4168",
           type: "target",
           sidelocation: "3",
           name: "P1",
+          position: "87",
         },
         {
           id: "16542",
           type: "source",
           sidelocation: "2",
           name: "P3",
+          position: "77",
         },
       ],
       kind: "TRUNKLINE",
@@ -312,19 +282,21 @@ export const initialNodes = [
   {
     id: "12413",
     data: {
-      label: "APG WI",
+      label: "Unit 10",
       handles: [
         {
           id: "18878",
           type: "source",
           sidelocation: "1",
           name: "P1",
+          position: "50",
         },
         {
           id: "64078",
           type: "target",
           sidelocation: "2",
           name: "P2",
+          position: "79",
         },
       ],
       kind: "COMPANY",
@@ -336,41 +308,23 @@ export const initialNodes = [
     },
   },
   {
-    id: "11100",
-    data: {
-      label: "BATANG GS PHE SIAK.11100",
-      handles: [
-        {
-          id: "15983",
-          type: "source",
-          sidelocation: "1",
-          name: "P1.15983",
-        },
-      ],
-      kind: "COMPANY",
-    },
-    type: "unit",
-    position: {
-      x: 366.940591101,
-      y: 55.632533737,
-    },
-  },
-  {
     id: "12414",
     data: {
-      label: "TRUCKING TO SPR LANGGAK",
+      label: "Unit 11",
       handles: [
         {
           id: "18880",
           type: "source",
           sidelocation: "1",
           name: "P2",
+          position: "55",
         },
         {
           id: "18879",
           type: "target",
           sidelocation: "0",
           name: "P1",
+          position: "49",
         },
       ],
       kind: "TRUCK - TANK",
@@ -384,73 +338,84 @@ export const initialNodes = [
   {
     id: "12242",
     data: {
-      label: "WK ROKAN",
+      label: "Unit 12",
       handles: [
         {
           id: "80981",
           type: "source",
           sidelocation: "1",
           name: "P11",
+          position: "51",
         },
         {
           id: "19520",
           type: "target",
           sidelocation: "2",
           name: "P10",
+          position: "21",
         },
         {
           id: "18661",
           type: "target",
           sidelocation: "0",
           name: "P1",
+          position: "14",
         },
         {
           id: "18662",
           type: "target",
           sidelocation: "0",
           name: "P2",
+          position: "39",
         },
         {
           id: "18667",
           type: "target",
           sidelocation: "0",
           name: "P7",
+          position: "55",
         },
         {
           id: "18682",
           type: "source",
           sidelocation: "1",
           name: "P9",
+          position: "80",
         },
         {
           id: "18666",
           type: "target",
           sidelocation: "3",
           name: "P6",
+          position: "39",
         },
         {
           id: "18663",
           type: "target",
           sidelocation: "3",
           name: "P3",
+          position: "30",
         },
         {
           id: "18664",
           type: "target",
           sidelocation: "3",
           name: "P4",
+          position: "69",
         },
         {
           id: "18681",
           type: "source",
           sidelocation: "1",
           name: "P8",
+          position: "24",
         },
         {
           id: "18665",
           type: "target",
           sidelocation: "3",
           name: "P5",
+          position: "88",
         },
       ],
       kind: "FIELD",
@@ -462,28 +427,16 @@ export const initialNodes = [
     },
   },
   {
-    id: "32787",
-    data: {
-      label: "BLOCK VALVE-1.32787",
-      handles: [],
-      kind: "WELLHEAD_BLACK",
-    },
-    type: "unit",
-    position: {
-      x: 108,
-      y: 121,
-    },
-  },
-  {
     id: "44143",
     data: {
-      label: "TESTING UNIT 3",
+      label: "Unit 13",
       handles: [
         {
           id: "90223",
           type: "source",
           sidelocation: "1",
           name: "P1",
+          position: "52",
         },
       ],
       kind: "COUNTY",
@@ -497,13 +450,14 @@ export const initialNodes = [
   {
     id: "44144",
     data: {
-      label: "TESTING UNIT 4",
+      label: "Unit 14",
       handles: [
         {
           id: "90224",
           type: "target",
           sidelocation: "0",
           name: "P1",
+          position: "48",
         },
       ],
       kind: "COUNTRY",
@@ -517,13 +471,14 @@ export const initialNodes = [
   {
     id: "44142",
     data: {
-      label: "TESTING UNIT 2",
+      label: "Unit 15",
       handles: [
         {
           id: "90222",
           type: "target",
           sidelocation: "0",
           name: "P1",
+          position: "49",
         },
       ],
       kind: "COUNTY",
@@ -537,19 +492,21 @@ export const initialNodes = [
   {
     id: "44141",
     data: {
-      label: "TESTING UNIT 1",
+      label: "Unit 16",
       handles: [
         {
           id: "90283",
           type: "source",
           sidelocation: "2",
-          name: "P5 TO TERMINAL",
+          name: "P5",
+          position: "50",
         },
         {
           id: "90221",
           type: "source",
           sidelocation: "1",
           name: "P1",
+          position: "48",
         },
       ],
       kind: "COMPANY",

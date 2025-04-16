@@ -10,14 +10,13 @@ import { UserSession } from './interfaces/user-session.interface';
 import { UserMessage } from './interfaces/user-message.iterface';
 
 @WebSocketGateway({
+  namespace: '/chat',
   cors: {
     origin: process.env.FRONTEND_URL || 'http://localhost:3000',
     credentials: true,
   },
 })
-export class WebsocketGateway
-  implements OnGatewayConnection, OnGatewayDisconnect
-{
+export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
   @WebSocketServer()
   server: Server;
 
@@ -50,24 +49,27 @@ export class WebsocketGateway
       this.updateSessionUserList(userSession.sessionId);
     }
   }
+
   @SubscribeMessage('join-session')
   handleJoinSession(
     client: Socket,
     payload: { username: string; sessionId: string },
   ) {
-    const { username, sessionId } = payload;
-    console.log(`User ${username} joined session ${sessionId}`);
+    console.log(`User ${payload.username} joined session ${payload.sessionId}`);
 
-    this.users.set(client.id, { username, sessionId });
+    this.users.set(client.id, {
+      username: payload.username,
+      sessionId: payload.sessionId,
+    });
 
-    client.join(sessionId);
+    client.join(payload.sessionId);
 
-    const currentMessages = this.sessionMessages.get(sessionId) || [];
+    const currentMessages = this.sessionMessages.get(payload.sessionId) || [];
     client.emit('chat-messages', currentMessages);
 
     client.emit('session-joined');
 
-    this.updateSessionUserList(sessionId);
+    this.updateSessionUserList(payload.sessionId);
   }
 
   @SubscribeMessage('leave-session')
@@ -75,8 +77,7 @@ export class WebsocketGateway
     client: Socket,
     payload: { username: string; sessionId: string },
   ) {
-    const { username, sessionId } = payload;
-    console.log(`User ${username} left session ${sessionId}`);
+    console.log(`User ${payload.username} left session ${payload.sessionId}`);
 
     if (this.users.has(client.id)) {
       const userSession = this.users.get(client.id);
@@ -85,11 +86,11 @@ export class WebsocketGateway
       }
       this.users.delete(client.id);
 
-      client.leave(sessionId);
+      client.leave(payload.sessionId);
       client.emit('user-list', []);
       client.emit('chat-messages', []);
 
-      this.updateSessionUserList(sessionId);
+      this.updateSessionUserList(payload.sessionId);
     }
   }
 
@@ -98,21 +99,19 @@ export class WebsocketGateway
     client: Socket,
     payload: { username: string; message: string; sessionId: string },
   ) {
-    const { username, message, sessionId } = payload;
-
     const userSession = this.users.get(client.id);
-    if (!userSession || userSession.sessionId !== sessionId) {
+    if (!userSession || userSession.sessionId !== payload.sessionId) {
       return;
     }
 
-    const currentMessages = this.sessionMessages.get(sessionId) || [];
+    const currentMessages = this.sessionMessages.get(payload.sessionId) || [];
     currentMessages.push({
-      username,
-      message,
+      username: payload.username,
+      message: payload.message,
       timestamp: Math.floor(Date.now() / 1000).toString(),
     });
-    this.sessionMessages.set(sessionId, currentMessages);
+    this.sessionMessages.set(payload.sessionId, currentMessages);
 
-    this.server.to(sessionId).emit('chat-messages', currentMessages);
+    this.server.to(payload.sessionId).emit('chat-messages', currentMessages);
   }
 }
