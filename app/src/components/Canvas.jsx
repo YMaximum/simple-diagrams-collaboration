@@ -19,7 +19,6 @@ import useNodesStateSynced from "@/hooks/useNodesStateSynced";
 import useEdgesStateSynced from "@/hooks/useEdgeStateSynced";
 import Cursors from "./Cursors";
 import useCursorStateSynced from "@/hooks/useCursorStateSynced";
-import * as Y from "yjs";
 import { WebsocketProvider } from "y-websocket";
 
 const proOptions = {
@@ -66,8 +65,6 @@ function Canvas() {
         sessionId,
         doc
       );
-
-      ywsProvider.synced
 
       setSocket((prevSocket) => ({ ...prevSocket, yws: ywsProvider }));
     });

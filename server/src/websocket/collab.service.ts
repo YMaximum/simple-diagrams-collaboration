@@ -1,7 +1,6 @@
 import { Injectable } from '@nestjs/common';
 import { initialEdges } from 'src/data/edges';
 import { initialNodes } from 'src/data/nodes';
-import * as Y from 'yjs';
 import { Edge, Node } from './interfaces/diagram.interface';
 
 @Injectable()
