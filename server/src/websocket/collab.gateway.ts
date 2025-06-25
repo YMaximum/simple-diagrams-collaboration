@@ -4,7 +4,6 @@ import {
   WebSocketServer,
 } from '@nestjs/websockets';
 import { Server, Socket } from 'socket.io';
-import * as Y from 'yjs';
 import { Injectable } from '@nestjs/common';
 import { CollabService } from './collab.service';
 
