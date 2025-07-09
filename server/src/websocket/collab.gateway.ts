@@ -10,7 +10,9 @@ import { Injectable } from '@nestjs/common';
 import { CollabService } from './collab.service';
 import * as Y from 'yjs';
 import { ClientInfo } from './interfaces/client.interface';
-import { encoding } from 'lib0';
+import { SyncType } from './constants/sync-type';
+import { UserSession } from './interfaces/user-session.interface';
+import { DocPayload } from './interfaces/doc.interface';
 
 @WebSocketGateway({
   namespace: '/collab',
@@ -27,8 +29,6 @@ export class CollabGateway implements OnGatewayConnection, OnGatewayDisconnect {
   private rooms = new Map<string, Y.Doc>();
   // Store client connections
   private clients = new Map<string, ClientInfo>();
-  // Store awareness states
-  private awarenessStates = new Map<string, Map<number, any>>();
 
   constructor(private readonly collabService: CollabService) {}
 
@@ -41,32 +41,22 @@ export class CollabGateway implements OnGatewayConnection, OnGatewayDisconnect {
 
     const clientInfo = this.clients.get(client.id);
     if (clientInfo) {
-      // Clean up awareness state
-      const awarenessMap = this.awarenessStates.get(clientInfo.sessionId);
-      if (awarenessMap) {
-        awarenessMap.delete(client.id.hashCode());
-        this.broadcastAwarenessUpdate(clientInfo.sessionId, client.id);
-      }
-
       this.clients.delete(client.id);
     }
   }
 
-  @SubscribeMessage('join-session')
-  handleJoinSession(
-    client: Socket,
-    payload: { username: string; sessionId: string },
-  ) {
+  @SubscribeMessage('join-room')
+  async handleJoinSession(client: Socket, payload: UserSession) {
     // Get or create document for this room
-    let doc = this.rooms.get(payload.sessionId);
+    let doc = this.rooms.get(payload.roomId);
     if (!doc) {
-      doc = new Y.Doc();
-      this.rooms.set(payload.sessionId, doc);
+      doc = this.collabService.getInitialDoc();
+      this.rooms.set(payload.roomId, doc);
 
       // Set up document update handler
       doc.on('update', (update: Uint8Array, origin: any) => {
-        if (origin !== client.id) {
-          this.broadcastUpdate(payload.sessionId, update, client.id);
+        if (origin) {
+          this.broadcastUpdate(payload.roomId, update, client.id);
         }
       });
     }
@@ -75,73 +65,60 @@ export class CollabGateway implements OnGatewayConnection, OnGatewayDisconnect {
     this.clients.set(client.id, {
       socket: client,
       doc,
-      sessionId: payload.sessionId,
+      roomId: payload.roomId,
     });
-
-    // Initialize awareness for this room if needed
-    if (!this.awarenessStates.has(payload.sessionId)) {
-      this.awarenessStates.set(payload.sessionId, new Map());
-    }
 
     // Join the room
-    client.join(payload.sessionId);
+    await client.join(payload.roomId);
 
-    // Send current document state to the new client
-    const encoder = encoding.createEncoder();
-    encoding.writeVarUint(encoder, 0); // Sync step 1
-    Y.writeSyncStep1(encoder, doc);
-    Y.encodeStateAsUpdate(encoder, doc);
-    const syncMessage = encoding.toUint8Array(encoder);
+    const syncMessage = Y.encodeStateAsUpdate(doc);
 
-    client.emit('yjs-message', {
-      type: 'sync',
-      data: Array.from(syncMessage), // Convert to array for JSON serialization
+    client.emit('initial-load', {
+      type: SyncType.InitialLoad,
+      data: Array.from(syncMessage),
     });
 
-    console.log(`Client ${client.id} joined room ${payload.sessionId}`);
+    console.log(`Client ${client.id} joined room ${payload.roomId}`);
+  }
+
+  @SubscribeMessage('doc-message')
+  handleDocMessage(client: Socket, payload: DocPayload) {
+    const clientInfo = this.clients.get(client.id);
+    if (!clientInfo) return;
+
+    const messageData = new Uint8Array(payload.data);
+
+    try {
+      switch (payload.type) {
+        case SyncType.Request:
+          // Client is requesting current state
+          client.emit('doc-message', {
+            type: SyncType.Receive,
+            data: Array.from(Y.encodeStateAsUpdate(clientInfo.doc)),
+          });
+          break;
+
+        case SyncType.Update:
+          // Client is sending an incremental update
+          Y.applyUpdate(clientInfo.doc, messageData, client.id);
+          break;
+      }
+    } catch (error) {
+      console.error('Error processing Y.js message:', error);
+    }
   }
 
   private broadcastUpdate(
-    sessionId: string,
+    roomId: string,
     update: Uint8Array,
     originClientId: string,
   ) {
-    const encoder = encoding.createEncoder();
-    encoding.writeVarUint(encoder, 2); // Update message type
-    encoding.writeVarUint8Array(encoder, update);
-    const message = encoding.toUint8Array(encoder);
-
     this.server
-      .to(sessionId)
+      .to(roomId)
       .except(originClientId)
-      .emit('yjs-message', {
-        type: 'sync',
-        data: Array.from(message),
-      });
-  }
-
-  private broadcastAwarenessUpdate(sessionId: string, originClientId: string) {
-    const awarenessMap = this.awarenessStates.get(sessionId);
-    if (!awarenessMap) return;
-
-    const encoder = encoding.createEncoder();
-    encoding.writeVarUint(encoder, 3); // Awareness message type
-    encoding.writeVarUint(encoder, awarenessMap.size);
-
-    awarenessMap.forEach((state, clientId) => {
-      encoding.writeVarUint(encoder, clientId);
-      encoding.writeVarUint(encoder, 0); // Clock
-      encoding.writeVarString(encoder, JSON.stringify(state));
-    });
-
-    const message = encoding.toUint8Array(encoder);
-
-    this.server
-      .to(sessionId)
-      .except(originClientId)
-      .emit('yjs-message', {
-        type: 'awareness',
-        data: Array.from(message),
+      .emit('doc-message', {
+        type: SyncType.Update,
+        data: Array.from(update),
       });
   }
 }

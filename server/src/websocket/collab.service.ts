@@ -1,17 +1,21 @@
 import { Injectable } from '@nestjs/common';
 import { initialEdges } from 'src/data/edges';
 import { initialNodes } from 'src/data/nodes';
-import { Edge, Node } from './interfaces/diagram.interface';
+import * as Y from 'yjs';
 
 @Injectable()
 export class CollabService {
-  private diagram = new Map<string, { nodes: Node[]; edges: Edge[] }>();
+  getInitialDoc(): Y.Doc {
+    const doc = new Y.Doc();
+    const nodes = doc.getMap('nodes');
+    const edges = doc.getMap('edges');
 
-  getDiagram(sessionId: string): { nodes: Node[]; edges: Edge[] } {
-    if (!this.diagram.has(sessionId)) {
-      this.diagram.set(sessionId, { nodes: initialNodes, edges: initialEdges });
+    if (nodes.size === 0) {
+      initialNodes.forEach((item) => nodes.set(item.id, item));
     }
-
-    return { nodes: initialNodes, edges: initialEdges };
+    if (edges.size === 0) {
+      initialEdges.forEach((item) => edges.set(item.id, item));
+    }
+    return doc;
   }
 }
