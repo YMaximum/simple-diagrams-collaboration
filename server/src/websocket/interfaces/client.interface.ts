@@ -4,5 +4,5 @@ import { Socket } from 'socket.io';
 export interface ClientInfo {
   socket: Socket;
   doc: Y.Doc;
-  sessionId: string;
+  roomId: string;
 }

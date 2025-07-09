@@ -19,7 +19,6 @@ import useNodesStateSynced from "@/hooks/useNodesStateSynced";
 import useEdgesStateSynced from "@/hooks/useEdgeStateSynced";
 import Cursors from "./Cursors";
 import useCursorStateSynced from "@/hooks/useCursorStateSynced";
-import { WebsocketProvider } from "y-websocket";
 
 const proOptions = {
   account: "paid-pro",
@@ -34,7 +33,7 @@ const onDragOver = (event) => {
 const nodeTypes = { unit: Unit };
 
 function Canvas() {
-  let { setSocket, sessionId } = useContext(UserContext);
+  let { setSocket, roomId } = useContext(UserContext);
 
   const [nodes, setNodes, onNodesChange] = useNodesStateSynced();
   const [edges, setEdges, onEdgesChange] = useEdgesStateSynced();
@@ -47,7 +46,7 @@ function Canvas() {
         : "http://localhost:3001/collab"
     );
 
-    collabProvider.on("diagram", (diagram) => {
+    collabProvider.on("initial-load", (diagram) => {
       const nodes = doc.getMap("nodes");
       const edges = doc.getMap("edges");
 
@@ -57,16 +56,6 @@ function Canvas() {
       if (edges.size === 0) {
         diagram.edges.forEach((item) => edges.set(item.id, item));
       }
-
-      const ywsProvider = new WebsocketProvider(
-        process.env.NEXT_PUBLIC_Y_WEBSOCKET_URL
-          ? `${process.env.NEXT_PUBLIC_Y_WEBSOCKET_URL}`
-          : "ws://localhost:1234",
-        sessionId,
-        doc
-      );
-
-      setSocket((prevSocket) => ({ ...prevSocket, yws: ywsProvider }));
     });
 
     setSocket((prevSocket) => ({ ...prevSocket, collab: collabProvider }));

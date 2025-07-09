@@ -1,4 +1,4 @@
 export interface UserSession {
   username: string;
-  sessionId: string;
+  roomId: string;
 }

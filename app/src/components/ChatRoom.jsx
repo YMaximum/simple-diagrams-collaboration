@@ -9,12 +9,12 @@ import { initialEdges } from "@/data/edges";
 
 export default function ChatRoom() {
   let {
-    sessionId,
-    setSessionId,
+    roomId,
+    setRoomId,
     socket,
     username,
-    isSessionJoined,
-    setIsSessionJoined,
+    isRoomJoined,
+    setIsRoomJoined,
     setSocket,
     setUsername,
   } = useContext(UserContext);
@@ -55,32 +55,32 @@ export default function ChatRoom() {
     };
   }, []);
 
-  const handleJoinSession = () => {
+  const handleJoinRoom = () => {
     if (username && socket.chat) {
-      socket.chat.emit("join-session", { username, sessionId });
-      socket.collab.emit("join-session", { username, sessionId });
-      setIsSessionJoined(true);
+      socket.chat.emit("join-room", { username, roomId });
+      socket.collab.emit("join-room", { username, roomId });
+      setIsRoomJoined(true);
     }
   };
 
-  const handleLeaveSession = () => {
+  const handleLeaveRoom = () => {
     if (username && socket.chat) {
-      socket.chat.emit("leave-session", { username, sessionId });
+      socket.chat.emit("leave-room", { username, roomId });
       socket.yws.disconnect();
-      setIsSessionJoined(false);
+      setIsRoomJoined(false);
     }
   };
 
   const handleSendMessage = () => {
     if (username && socket.chat && message !== "") {
-      socket.chat.emit("send-message", { username, message, sessionId });
+      socket.chat.emit("send-message", { username, message, roomId });
       setMessage("");
     }
   };
 
   return (
     <div className="max-w-[25vw] min-w-[20vw] mx-auto p-4 h-full flex flex-col gap-2 border-l">
-      <h1 className="text-2xl font-bold">Session</h1>
+      <h1 className="text-2xl font-bold">Room</h1>
 
       {!isConnected && (
         <div className="p-4 rounded">
@@ -88,7 +88,7 @@ export default function ChatRoom() {
         </div>
       )}
 
-      {!isSessionJoined ? (
+      {!isRoomJoined ? (
         <div className="flex gap-1">
           <input
             type="text"
@@ -99,17 +99,17 @@ export default function ChatRoom() {
           />
           <input
             type="text"
-            value={sessionId}
-            onChange={(e) => setSessionId(e.target.value)}
-            placeholder="Enter session id"
+            value={roomId}
+            onChange={(e) => setRoomId(e.target.value)}
+            placeholder="Enter room id"
             className="border w-[35%] text-sm p-2 placeholder:text-xs"
           />
           <button
-            onClick={handleJoinSession}
+            onClick={handleJoinRoom}
             className="bg-blue-500 text-white text-sm p-2 rounded cursor-pointer disabled:bg-red-600 disabled:cursor-not-allowed"
-            disabled={!username || !isConnected || !sessionId}
+            disabled={!username || !isConnected || !roomId}
           >
-            Join Session
+            Join Room
           </button>
         </div>
       ) : (
@@ -119,14 +119,14 @@ export default function ChatRoom() {
               <b>Username :</b> {username}
             </p>
             <p>
-              <b>Sesion Id :</b> {sessionId}
+              <b>Sesion Id :</b> {roomId}
             </p>
           </div>
           <button
-            onClick={handleLeaveSession}
+            onClick={handleLeaveRoom}
             className="bg-red-600 text-white text-sm p-2 rounded cursor-pointer"
           >
-            Leave Session
+            Leave Room
           </button>
         </div>
       )}

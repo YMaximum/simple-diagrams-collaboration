@@ -5,20 +5,20 @@ import { Doc } from "yjs";
 export const UserContext = createContext();
 
 export function UserContextProvier({ children }) {
-  const [sessionId, setSessionId] = useState("");
-  const [isSessionJoined, setIsSessionJoined] = useState(false);
+  const [roomId, setRoomId] = useState("");
+  const [isRoomJoined, setIsRoomJoined] = useState(false);
   const [socket, setSocket] = useState({});
   const [username, setUsername] = useState("");
 
   return (
     <UserContext.Provider
       value={{
-        sessionId,
-        isSessionJoined,
+        roomId,
+        isRoomJoined,
         socket,
         username,
-        setSessionId,
-        setIsSessionJoined,
+        setRoomId,
+        setIsRoomJoined,
         setSocket,
         setUsername,
       }}

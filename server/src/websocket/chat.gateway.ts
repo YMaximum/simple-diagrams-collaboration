@@ -28,12 +28,12 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
     console.log(`Client connected: ${client.id}`);
   }
 
-  private updateSessionUserList(sessionId: string) {
+  private updateSessionUserList(roomId: string) {
     const sessionUsers = Array.from(this.users.values())
-      .filter((user) => user.sessionId === sessionId)
+      .filter((user) => user.roomId === roomId)
       .map((user) => user.username);
 
-    this.server.to(sessionId).emit('user-list', sessionUsers);
+    this.server.to(roomId).emit('user-list', sessionUsers);
   }
 
   handleDisconnect(client: Socket) {
@@ -46,38 +46,38 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
       }
       this.users.delete(client.id);
 
-      this.updateSessionUserList(userSession.sessionId);
+      this.updateSessionUserList(userSession.roomId);
     }
   }
 
-  @SubscribeMessage('join-session')
-  handleJoinSession(
+  @SubscribeMessage('join-room')
+  async handleJoinSession(
     client: Socket,
-    payload: { username: string; sessionId: string },
+    payload: { username: string; roomId: string },
   ) {
-    console.log(`User ${payload.username} joined session ${payload.sessionId}`);
+    console.log(`User ${payload.username} joined session ${payload.roomId}`);
 
     this.users.set(client.id, {
       username: payload.username,
-      sessionId: payload.sessionId,
+      roomId: payload.roomId,
     });
 
-    client.join(payload.sessionId);
+    await client.join(payload.roomId);
 
-    const currentMessages = this.sessionMessages.get(payload.sessionId) || [];
+    const currentMessages = this.sessionMessages.get(payload.roomId) || [];
     client.emit('chat-messages', currentMessages);
 
     client.emit('session-joined');
 
-    this.updateSessionUserList(payload.sessionId);
+    this.updateSessionUserList(payload.roomId);
   }
 
-  @SubscribeMessage('leave-session')
-  handleLeaveSession(
+  @SubscribeMessage('leave-room')
+  async handleLeaveSession(
     client: Socket,
-    payload: { username: string; sessionId: string },
+    payload: { username: string; roomId: string },
   ) {
-    console.log(`User ${payload.username} left session ${payload.sessionId}`);
+    console.log(`User ${payload.username} left session ${payload.roomId}`);
 
     if (this.users.has(client.id)) {
       const userSession = this.users.get(client.id);
@@ -86,32 +86,32 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
       }
       this.users.delete(client.id);
 
-      client.leave(payload.sessionId);
+      await client.leave(payload.roomId);
       client.emit('user-list', []);
       client.emit('chat-messages', []);
 
-      this.updateSessionUserList(payload.sessionId);
+      this.updateSessionUserList(payload.roomId);
     }
   }
 
   @SubscribeMessage('send-message')
   handleSendMessage(
     client: Socket,
-    payload: { username: string; message: string; sessionId: string },
+    payload: { username: string; message: string; roomId: string },
   ) {
     const userSession = this.users.get(client.id);
-    if (!userSession || userSession.sessionId !== payload.sessionId) {
+    if (!userSession || userSession.roomId !== payload.roomId) {
       return;
     }
 
-    const currentMessages = this.sessionMessages.get(payload.sessionId) || [];
+    const currentMessages = this.sessionMessages.get(payload.roomId) || [];
     currentMessages.push({
       username: payload.username,
       message: payload.message,
       timestamp: Math.floor(Date.now() / 1000).toString(),
     });
-    this.sessionMessages.set(payload.sessionId, currentMessages);
+    this.sessionMessages.set(payload.roomId, currentMessages);
 
-    this.server.to(payload.sessionId).emit('chat-messages', currentMessages);
+    this.server.to(payload.roomId).emit('chat-messages', currentMessages);
   }
 }
