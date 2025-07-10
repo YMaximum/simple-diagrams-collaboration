@@ -12,13 +12,13 @@ import "@xyflow/react/dist/style.css";
 import { useCallback, useContext, useEffect, useRef } from "react";
 import Unit from "./customnodes/Unit";
 
-import { io } from "socket.io-client";
 import { UserContext } from "./context/UserContext";
-import { doc } from "@/data/ydoc";
 import useNodesStateSynced from "@/hooks/useNodesStateSynced";
 import useEdgesStateSynced from "@/hooks/useEdgeStateSynced";
 import Cursors from "./Cursors";
 import useCursorStateSynced from "@/hooks/useCursorStateSynced";
+import { setupCollaboration } from "@/providers/CustomYJSProvider";
+import * as Y from "yjs";
 
 const proOptions = {
   account: "paid-pro",
@@ -33,37 +33,28 @@ const onDragOver = (event) => {
 const nodeTypes = { unit: Unit };
 
 function Canvas() {
-  let { setSocket, roomId } = useContext(UserContext);
+  let { setSocket, roomId, isRoomJoined } = useContext(UserContext);
 
   const [nodes, setNodes, onNodesChange] = useNodesStateSynced();
   const [edges, setEdges, onEdgesChange] = useEdgesStateSynced();
-  const [cursors, onMouseMove] = useCursorStateSynced();
+  // const [cursors, onMouseMove] = useCursorStateSynced();
 
   useEffect(() => {
-    const collabProvider = io(
-      process.env.NEXT_PUBLIC_WEBSOCKET_URL
-        ? `${process.env.NEXT_PUBLIC_WEBSOCKET_URL}/collab`
-        : "http://localhost:3001/collab"
-    );
+    if (!roomId) {
+      return;
+    }
 
-    collabProvider.on("initial-load", (diagram) => {
-      const nodes = doc.getMap("nodes");
-      const edges = doc.getMap("edges");
+    const { provider } = setupCollaboration(roomId);
 
-      if (nodes.size === 0) {
-        diagram.nodes.forEach((item) => nodes.set(item.id, item));
-      }
-      if (edges.size === 0) {
-        diagram.edges.forEach((item) => edges.set(item.id, item));
-      }
-    });
-
-    setSocket((prevSocket) => ({ ...prevSocket, collab: collabProvider }));
+    setSocket((prevSocket) => ({
+      ...prevSocket,
+      collab: provider.getSocket(),
+    }));
 
     return () => {
-      collabProvider.disconnect();
+      provider.destroy();
     };
-  }, []);
+  }, [isRoomJoined]);
 
   const onConnect = useCallback(
     (params) => {
@@ -123,13 +114,13 @@ function Canvas() {
         onNodeClick={onNodeClick}
         onDrop={onDrop}
         onDragOver={onDragOver}
-        onPointerMove={onMouseMove}
+        // onPointerMove={onMouseMove}
         proOptions={proOptions}
         fitView
       >
-        <Controls />
+        {/* <Controls /> */}
         <MiniMap pannable zoomable />
-        <Cursors cursors={cursors} />
+        {/* <Cursors cursors={cursors} /> */}
         <Panel position="top-left">Socket.IO + Yjs</Panel>
         <Background variant="dots" gap={12} size={1} />
       </ReactFlow>

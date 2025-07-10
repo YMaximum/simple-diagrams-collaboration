@@ -1,9 +1,9 @@
 import * as Y from "yjs";
-import { io, Socket } from "socket.io-client";
-import { encoding, decoding } from "lib0";
+import { io } from "socket.io-client";
 import { SyncType } from "@/constants/syncType";
+import { doc } from "@/data/ydoc";
 
-export class CustomYjsProvider {
+export class CustomWsProvider {
   socket;
   doc;
   roomId;
@@ -54,6 +54,8 @@ export class CustomYjsProvider {
   }
 
   handleDocMessage(messageType, messageData) {
+    messageData = new Uint8Array(messageData);
+
     try {
       switch (messageType) {
         case SyncType.Request:
@@ -80,22 +82,23 @@ export class CustomYjsProvider {
     }
   }
 
-  // Clean up
+  getSocket() {
+    return this.socket;
+  }
+
   destroy() {
     this.socket.disconnect();
   }
 }
 
-// Usage example - replace your WebsocketProvider with this:
 export function setupCollaboration(roomId) {
-  const doc = new Y.Doc();
-
-  // Create custom provider instead of WebsocketProvider
-  const provider = new CustomYjsProvider(
-    process.env.NEXT_PUBLIC_WEBSOCKET_URL || "http://localhost:3000",
+  const provider = new CustomWsProvider(
+    process.env.NEXT_PUBLIC_WEBSOCKET_URL
+      ? `${process.env.NEXT_PUBLIC_WEBSOCKET_URL}/collab`
+      : "http://localhost:3001/collab",
     roomId,
     doc
   );
 
-  return { doc, nodes, edges, provider };
+  return { doc, provider };
 }

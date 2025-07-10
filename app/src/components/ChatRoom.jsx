@@ -58,7 +58,6 @@ export default function ChatRoom() {
   const handleJoinRoom = () => {
     if (username && socket.chat) {
       socket.chat.emit("join-room", { username, roomId });
-      socket.collab.emit("join-room", { username, roomId });
       setIsRoomJoined(true);
     }
   };
@@ -66,7 +65,6 @@ export default function ChatRoom() {
   const handleLeaveRoom = () => {
     if (username && socket.chat) {
       socket.chat.emit("leave-room", { username, roomId });
-      socket.yws.disconnect();
       setIsRoomJoined(false);
     }
   };
