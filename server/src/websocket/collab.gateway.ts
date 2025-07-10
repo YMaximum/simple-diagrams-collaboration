@@ -17,7 +17,7 @@ import { DocPayload } from './interfaces/doc.interface';
 @WebSocketGateway({
   namespace: '/collab',
   cors: {
-    origin: process.env.FRONTEND_URL || 'http://localhost:3000',
+    origin: '*',
     credentials: true,
   },
 })

@@ -12,7 +12,7 @@ import { UserMessage } from './interfaces/user-message.iterface';
 @WebSocketGateway({
   namespace: '/chat',
   cors: {
-    origin: process.env.FRONTEND_URL || 'http://localhost:3000',
+    origin: '*',
     credentials: true,
   },
 })
