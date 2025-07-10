@@ -65,6 +65,7 @@ export default function ChatRoom() {
   const handleLeaveRoom = () => {
     if (username && socket.chat) {
       socket.chat.emit("leave-room", { username, roomId });
+      socket.collab.disconnect();
       setIsRoomJoined(false);
     }
   };

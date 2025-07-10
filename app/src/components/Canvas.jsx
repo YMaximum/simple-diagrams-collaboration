@@ -40,6 +40,10 @@ function Canvas() {
   // const [cursors, onMouseMove] = useCursorStateSynced();
 
   useEffect(() => {
+    if (!isRoomJoined) {
+      return;
+    }
+
     if (!roomId) {
       return;
     }
