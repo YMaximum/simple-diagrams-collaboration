@@ -74,7 +74,7 @@ export class CollabGateway implements OnGatewayConnection, OnGatewayDisconnect {
     const syncMessage = Y.encodeStateAsUpdate(doc);
 
     client.emit('initial-load', {
-      type: SyncType.InitialLoad,
+      type: SyncType.Update,
       data: Array.from(syncMessage),
     });
 
