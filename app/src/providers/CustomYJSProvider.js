@@ -28,9 +28,10 @@ export class CustomWsProvider {
       this.connected = true;
 
       // Join the room
-      this.socket.emit("join-room", { roomId: this.roomId });
-      this.socket.on("initial-load", (payload) => {
-        this.handleDocMessage(payload.type, payload.data);
+      const clientDoc = Y.encodeStateAsUpdate(this.doc);
+      this.socket.emit("join-room", {
+        roomId: this.roomId,
+        clientDoc: Array.from(clientDoc),
       });
     });
 

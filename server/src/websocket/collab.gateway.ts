@@ -54,9 +54,9 @@ export class CollabGateway implements OnGatewayConnection, OnGatewayDisconnect {
       this.rooms.set(payload.roomId, doc);
 
       // Set up document update handler
-      doc.on('update', (update: Uint8Array, origin: any) => {
+      doc.on('update', (update: Uint8Array, origin: string) => {
         if (origin) {
-          this.broadcastUpdate(payload.roomId, update, client.id);
+          this.broadcastUpdate(payload.roomId, update, origin);
         }
       });
     }
@@ -71,9 +71,15 @@ export class CollabGateway implements OnGatewayConnection, OnGatewayDisconnect {
     // Join the room
     await client.join(payload.roomId);
 
-    const syncMessage = Y.encodeStateAsUpdate(doc);
+    let syncMessage = Y.encodeStateAsUpdate(doc);
+    if (payload.clientDoc) {
+      syncMessage = new Uint8Array(payload.clientDoc);
+    }
 
-    client.emit('initial-load', {
+    Y.applyUpdate(doc, syncMessage, client.id);
+    syncMessage = Y.encodeStateAsUpdate(doc);
+
+    client.emit('doc-message', {
       type: SyncType.Update,
       data: Array.from(syncMessage),
     });
