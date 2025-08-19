@@ -195,7 +195,7 @@ export const initialNodes: Node[] = [
           name: 'P1',
           idpfport: 121,
           sidelocation: 0,
-          hasDirection: 'outlet',
+          hasDirection: 'inlet',
           position: 51,
         },
       ],
